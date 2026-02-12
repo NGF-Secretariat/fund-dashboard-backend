@@ -16,7 +16,7 @@ export class TransactionsService {
     @InjectRepository(Account)
     private accountRepository: Repository<Account>,
     private auditService: AuditService,
-  ) {}
+  ) { }
 
   async create(createTransactionDto: CreateTransactionDto, user: User) {
     // Find the account
@@ -82,7 +82,7 @@ export class TransactionsService {
     };
   }
 
-  async findAll(options?: { startDate?: string; endDate?: string; limit?: number; page?: number }) {
+  async findAll(options?: { startDate?: string; endDate?: string; limit?: number; page?: number, type?: string }) {
     const query = this.transactionsRepository.createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.account', 'account')
       .leftJoinAndSelect('account.currency', 'currency')
@@ -95,6 +95,9 @@ export class TransactionsService {
     }
     if (options?.endDate) {
       query.andWhere('transaction.createdAt <= :endDate', { endDate: options.endDate });
+    }
+    if (options?.type) {
+      query.andWhere('transaction.type = :type', { type: options.type });
     }
     let limit = options?.limit || 50;
     let page = options?.page || 1;

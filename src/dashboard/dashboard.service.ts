@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Account } from 'src/accounts/account.entity';
 import { AccountCategory } from 'src/categories/account-categories.entity';
 import { Transaction } from 'src/transactions/transaction.entity';
@@ -12,11 +12,13 @@ export class DashboardService {
     private readonly accountRepo: Repository<Account>,
     @InjectRepository(AccountCategory)
     private readonly categoryRepo: Repository<AccountCategory>,
-  ) {}
+    @InjectRepository(Transaction)
+    private readonly transactionRepo: Repository<Transaction>,
+  ) { }
 
   async getTestService() {
     return "okay operation completed successfully";
-}
+  }
 
 
   async getAccountsGroupedByCurrency(bankId: number, category: 'project' | 'secretariat') {
@@ -114,6 +116,80 @@ export class DashboardService {
     return result;
   }
 
+  async getAccountSummary(
+    accountId: number,
+    startDate: string,
+    endDate: string,
+    type: 'inflow' | 'outflow' | 'all',
+  ) {
+    const account = await this.accountRepo.findOne({
+      where: { id: accountId },
+      relations: ['bank', 'currency', 'category'],
+    });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    const where: any = {
+      account: { id: accountId },
+      createdAt: Between(
+        new Date(startDate),
+        new Date(endDate),
+      ),
+    };
+
+    if (type !== 'all') {
+      where.type = type;
+    }
+
+    const transactions = await this.transactionRepo.find({
+      where,
+      order: { createdAt: 'ASC' },
+    });
+
+    let inflow = 0;
+    let outflow = 0;
+    let previousBalance = account.balance;
+    let currentBalance = account.balance;
+
+    if (transactions.length > 0) {
+      inflow = transactions
+        .filter(t => t.type === 'inflow')
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+
+      outflow = transactions
+        .filter(t => t.type === 'outflow')
+        .reduce((sum, t) => sum + Number(t.amount), 0);
+
+      previousBalance = Number(transactions[0].previousBalance);
+      currentBalance = Number(
+        transactions[transactions.length - 1].currentBalance
+      );
+    }
+
+    return {
+      account: {
+        id: account.id,
+        name: account.name,
+        accountNumber: account.accountNumber,
+        bank: account.bank?.name,
+        currency: account.currency?.code,
+        category: account.category?.name,
+      },
+      period: { startDate, endDate },
+      filter: type,
+      summary: {
+        previousBalance,
+        inflow,
+        outflow,
+        currentBalance,
+        transactionCount: transactions.length,
+      },
+      transactions,
+    };
+  }
+
   /**
    * Returns grouped accounts for a specific category (project or secretariat)
    */
@@ -121,4 +197,5 @@ export class DashboardService {
     const all = await this.getAllAccountsGrouped();
     return { [category]: all[category] || {} };
   }
+
 }

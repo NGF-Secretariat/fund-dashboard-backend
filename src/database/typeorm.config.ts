@@ -7,4 +7,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   url: process.env.DB_CONNECTION_URL,
   synchronize: true, // ❗ Use true only in dev
   autoLoadEntities: true,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 };

@@ -15,6 +15,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { CommonModule } from './common/common.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { AuthModule } from './auth/auth.module';
+import { JobsModule } from './jobs/jobs.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from './auth/auth.module';
     TransactionsModule,
     AuditLogsModule,
     DashboardModule,
+    JobsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -39,4 +41,4 @@ import { AuthModule } from './auth/auth.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
