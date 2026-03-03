@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.enableCors({
-    origin: true,
+    // origin: true,
     methods: '*',
     allowedHeaders: '*',
     credentials: true,
