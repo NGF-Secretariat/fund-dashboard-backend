@@ -8,39 +8,43 @@ export class AuditLogsService {
   constructor(
     @InjectRepository(AuditLog)
     private auditLogsRepository: Repository<AuditLog>,
-  ) {}
+  ) { }
 
-  async findAll(options?: { startDate?: string; endDate?: string; limit?: number; page?: number }) {
+  async findAll(options?: { startDate?: string; endDate?: string; limit?: number; page?: number; userId?: number }) {
     const query = this.auditLogsRepository.createQueryBuilder('auditLog')
       .leftJoinAndSelect('auditLog.createdBy', 'createdBy')
       .orderBy('auditLog.createdAt', 'DESC');
 
-      if (options?.startDate) {
-        const start = new Date(options.startDate);
-        start.setUTCHours(0, 0, 0, 0);
-        query.andWhere('auditLog.createdAt >= :startDate', { startDate: start.toISOString() });
-      }
-      
-      if (options?.endDate) {
-        const end = new Date(options.endDate);
-        end.setUTCHours(23, 59, 59, 999);
-        query.andWhere('auditLog.createdAt <= :endDate', { endDate: end.toISOString() });
-      }
-      
+    if (options?.startDate) {
+      const start = new Date(options.startDate);
+      start.setUTCHours(0, 0, 0, 0);
+      query.andWhere('auditLog.createdAt >= :startDate', { startDate: start.toISOString() });
+    }
+
+    if (options?.endDate) {
+      const end = new Date(options.endDate);
+      end.setUTCHours(23, 59, 59, 999);
+      query.andWhere('auditLog.createdAt <= :endDate', { endDate: end.toISOString() });
+    }
+
+    if (options?.userId) {
+      query.andWhere('createdBy.id = :userId', { userId: options.userId });
+    }
+
     let limit = options?.limit || 50;
     let page = options?.page || 1;
     query.take(limit);
     query.skip((page - 1) * limit);
 
-    const [auditLogs, total] = await query.getManyAndCount();
+    const [auditLogs, totalItems] = await query.getManyAndCount();
 
     return {
       success: true,
       data: auditLogs,
-      total,
+      totalItems,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(totalItems / limit),
     };
   }
 

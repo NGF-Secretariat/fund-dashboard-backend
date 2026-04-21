@@ -8,7 +8,7 @@ import { RolesGuard } from '../auth/jwt-auth.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('audit')
 export class AuditLogsController {
-  constructor(private readonly auditLogsService: AuditLogsService) {}
+  constructor(private readonly auditLogsService: AuditLogsService) { }
 
   @Get()
   async findAll(
@@ -16,12 +16,14 @@ export class AuditLogsController {
     @Query('endDate') endDate?: string,
     @Query('limit') limit?: string,
     @Query('page') page?: string,
+    @Query('userId') userId?: string,
   ) {
     return this.auditLogsService.findAll({
       startDate,
       endDate,
       limit: limit ? parseInt(limit, 10) : undefined,
       page: page ? parseInt(page, 10) : undefined,
+      userId: userId ? parseInt(userId, 10) : undefined,
     });
   }
 
