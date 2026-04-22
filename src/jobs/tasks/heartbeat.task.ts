@@ -8,5 +8,6 @@ export class HeartbeatTask {
     @Cron(CronExpression.EVERY_30_SECONDS)
     handleCron() {
         this.logger.debug('Heartbeat: Cron job running every 30 seconds');
+        console.log('Heartbeat: Cron job running every 30 seconds');
     }
 }
