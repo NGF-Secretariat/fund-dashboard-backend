@@ -5,8 +5,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 export class HeartbeatTask {
     private readonly logger = new Logger(HeartbeatTask.name);
 
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_30_SECONDS)
     handleCron() {
-        this.logger.debug('Heartbeat: Cron job running every 1 minute');
+        this.logger.debug('Heartbeat: Cron job running every 30 seconds');
     }
 }
