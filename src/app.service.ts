@@ -5,4 +5,5 @@ export class AppService {
   getHello(): string {
     return 'Fund dashboard backend is running!';
   }
+
 }
